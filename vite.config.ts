@@ -17,17 +17,8 @@ export default defineConfig(() => {
       hmr: process.env.DISABLE_HMR !== 'true',
       // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
-      headers: {
-        "Cross-Origin-Opener-Policy": "same-origin",
-        "Cross-Origin-Embedder-Policy": "require-corp",
-      },
     },
-    preview: {
-      headers: {
-        "Cross-Origin-Opener-Policy": "same-origin",
-        "Cross-Origin-Embedder-Policy": "require-corp",
-      },
-    },
+    preview: {},
     optimizeDeps: {
       exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"],
     },
