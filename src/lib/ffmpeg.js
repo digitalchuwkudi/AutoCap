@@ -4,7 +4,7 @@
 // File size limit: ~500MB depending on your RAM.
 
 import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { fetchFile } from "@ffmpeg/util";
+import { fetchFile, toBlobURL } from "@ffmpeg/util";
 
 let ff       = null;
 let ffLoaded = false;
@@ -28,16 +28,15 @@ export async function loadFFmpeg(onProgress) {
     });
   });
 
-  // Using local files copied to /public/ffmpeg instead of CDN to avoid "Failed to fetch" adblocker/CORS issues.
-  const base = "/ffmpeg";
+  const baseURL = `${window.location.origin}/ffmpeg`;
 
   try {
     await ff.load({
-      coreURL:   `${base}/ffmpeg-core.js`,
-      wasmURL:   `${base}/ffmpeg-core.wasm`,
+      coreURL:   await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
+      wasmURL:   await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
     });
   } catch (err) {
-    throw new Error(`Failed to load FFmpeg engine from ${base}. Network error or adblocker might be blocking it. Detailed error: ${err.message}`);
+    throw new Error(`Failed to load FFmpeg engine. Network error or adblocker might be blocking it. Detailed error: ${err?.message || err}`);
   }
 
   ffLoaded = true;
