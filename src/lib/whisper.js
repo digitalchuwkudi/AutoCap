@@ -28,7 +28,7 @@ export async function transcribeOffline(audioBlob, onProgress) {
 
   onProgress({ stage: "Decoding Audio for Transcription...", pct: 50 });
   
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
   const arrayBuffer = await audioBlob.arrayBuffer();
   
   let audioBuffer;
@@ -38,14 +38,7 @@ export async function transcribeOffline(audioBlob, onProgress) {
     throw new Error("Could not decode audio from the provided file. The format might be unsupported.");
   }
   
-  onProgress({ stage: "Resampling Audio...", pct: 60 });
-  const offlineContext = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, audioBuffer.duration * 16000, 16000);
-  const bufferSource = offlineContext.createBufferSource();
-  bufferSource.buffer = audioBuffer;
-  bufferSource.connect(offlineContext.destination);
-  bufferSource.start(0);
-  const resampledBuffer = await offlineContext.startRendering();
-  const audioData = resampledBuffer.getChannelData(0);
+  const audioData = audioBuffer.getChannelData(0);
 
   onProgress({ stage: "Transcribing Offline (this may take a moment)...", pct: 75 });
   

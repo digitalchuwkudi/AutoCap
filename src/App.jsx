@@ -266,8 +266,20 @@ export default function App() {
     setLoading(true);
     setLoadError("");
     try {
-      setAudioBlob(file);
-      const words = await transcribeOffline(file, setLoadStatus);
+      let mediaToTranscribe = file;
+      
+      // Prevent Out-Of-Memory (OOM) browser crashes by extracting a small audio track
+      // FIRST instead of loading the entire HD video into the AudioContext Decoder.
+      // NOTE: This is strictly for the AI to listen to. The final output video retains the original video and audio.
+      if (file.type.startsWith("video/")) {
+        setLoadStatus("Separating audio track for AI...");
+        mediaToTranscribe = await extractAudio(file, (p) => {
+          setLoadStatus(p.stage);
+        });
+      }
+      
+      setAudioBlob(mediaToTranscribe);
+      const words = await transcribeOffline(mediaToTranscribe, setLoadStatus);
       const caps  = groupIntoCaptions(words, wordsPerBlock);
       setCaptions(caps);
       setSelectedIdx(0);

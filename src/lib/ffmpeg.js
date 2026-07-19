@@ -47,21 +47,22 @@ export async function extractAudio(mediaFile, onProgress) {
   await engine.writeFile("input_media", await fetchFile(mediaFile));
   
   onProgress?.({ stage: "Processing audio track…", pct: 50, overall: 20 });
-  // -vn removes video, -acodec libmp3lame encodes to mp3, -q:a 5 is reasonable quality
+  // -vn removes video, -acodec pcm_s16le extracts uncompressed WAV (fully supported & fast)
   await engine.exec([
     "-i", "input_media",
     "-vn",
-    "-acodec", "libmp3lame",
-    "-q:a", "5",
-    "audio.mp3"
+    "-acodec", "pcm_s16le",
+    "-ar", "16000",
+    "-ac", "1",
+    "audio.wav"
   ]);
   
-  const audioData = await engine.readFile("audio.mp3");
+  const audioData = await engine.readFile("audio.wav");
   
   await engine.deleteFile("input_media").catch(() => {});
-  await engine.deleteFile("audio.mp3").catch(() => {});
+  await engine.deleteFile("audio.wav").catch(() => {});
   
-  return new File([audioData.buffer], "audio.mp3", { type: "audio/mp3" });
+  return new File([audioData.buffer], "audio.wav", { type: "audio/wav" });
 }
 
 // Converts hex color to ASS subtitle format (&HAABBGGRR)
