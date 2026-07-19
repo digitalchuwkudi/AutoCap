@@ -1,0 +1,6 @@
+{
+  "name": "AutoCap",
+  "description": "AI Caption Studio - upload video, transcribe with Gemini, style, and burn subtitles in the browser.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
