@@ -32,8 +32,8 @@ export async function loadFFmpeg(onProgress) {
 
   try {
     await ff.load({
-      coreURL:   await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL:   await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
+      coreURL:   `${baseURL}/ffmpeg-core.js?v=2`,
+      wasmURL:   `${baseURL}/ffmpeg-core.wasm?v=2`,
     });
   } catch (err) {
     throw new Error(`Failed to load FFmpeg engine. Network error or adblocker might be blocking it. Detailed error: ${err?.message || err}`);
