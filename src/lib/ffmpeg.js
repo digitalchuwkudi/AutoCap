@@ -4,7 +4,7 @@
 // File size limit: ~500MB depending on your RAM.
 
 import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { fetchFile, toBlobURL } from "@ffmpeg/util";
+import { fetchFile } from "@ffmpeg/util";
 
 let ff       = null;
 let ffLoaded = false;
@@ -28,13 +28,24 @@ export async function loadFFmpeg(onProgress) {
     });
   });
 
-  const baseURL = `${window.location.origin}/ffmpeg`;
+  // Download files manually to blobs to ensure they are fully downloaded before WebAssembly compilation
+  // This prevents CompileErrors caused by chunked streaming or timeouts in sandboxed environments.
+  const loadBlob = async (url, type) => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const buf = await res.arrayBuffer();
+      return URL.createObjectURL(new Blob([buf], { type }));
+    } catch (e) {
+      throw new Error(`Failed to fetch ${url}: ${e.message || e}`);
+    }
+  };
 
   try {
-    await ff.load({
-      coreURL:   `${baseURL}/ffmpeg-core.js?v=2`,
-      wasmURL:   `${baseURL}/ffmpeg-core.wasm?v=2`,
-    });
+    const coreURL = await loadBlob("/ffmpeg/ffmpeg-core.js?v=2", "text/javascript");
+    const wasmURL = await loadBlob("/ffmpeg/ffmpeg-core.wasm?v=2", "application/wasm");
+
+    await ff.load({ coreURL, wasmURL });
   } catch (err) {
     throw new Error(`Failed to load FFmpeg engine. Network error or adblocker might be blocking it. Detailed error: ${err?.message || err}`);
   }
