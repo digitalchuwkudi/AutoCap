@@ -266,19 +266,8 @@ export default function App() {
     setLoading(true);
     setLoadError("");
     try {
-      let mediaToTranscribe = file;
-      
-      // If it's a video, extract audio first for faster/reliable upload
-      if (file.type.startsWith("video/")) {
-        setLoadStatus("Extracting audio...");
-        mediaToTranscribe = await extractAudio(file, (p) => {
-          setLoadStatus(p.stage);
-        });
-      }
-      
-      setAudioBlob(mediaToTranscribe);
-
-      const words = await transcribeOffline(mediaToTranscribe, setLoadStatus);
+      setAudioBlob(file);
+      const words = await transcribeOffline(file, setLoadStatus);
       const caps  = groupIntoCaptions(words, wordsPerBlock);
       setCaptions(caps);
       setSelectedIdx(0);
