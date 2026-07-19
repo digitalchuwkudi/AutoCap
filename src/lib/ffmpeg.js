@@ -28,13 +28,18 @@ export async function loadFFmpeg(onProgress) {
     });
   });
 
-  const base = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
+  // Using local files copied to /public/ffmpeg instead of CDN to avoid "Failed to fetch" adblocker/CORS issues.
+  const base = "/ffmpeg";
 
-  await ff.load({
-    coreURL:   await toBlobURL(`${base}/ffmpeg-core.js`,        "text/javascript"),
-    wasmURL:   await toBlobURL(`${base}/ffmpeg-core.wasm`,      "application/wasm"),
-    workerURL: await toBlobURL(`${base}/ffmpeg-core.worker.js`, "text/javascript"),
-  });
+  try {
+    await ff.load({
+      coreURL:   await toBlobURL(`${base}/ffmpeg-core.js`,        "text/javascript"),
+      wasmURL:   await toBlobURL(`${base}/ffmpeg-core.wasm`,      "application/wasm"),
+      workerURL: await toBlobURL(`${base}/ffmpeg-core.worker.js`, "text/javascript"),
+    });
+  } catch (err) {
+    throw new Error(`Failed to load FFmpeg engine from ${base}. Network error or adblocker might be blocking it. Detailed error: ${err.message}`);
+  }
 
   ffLoaded = true;
   return ff;

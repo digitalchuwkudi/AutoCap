@@ -2,6 +2,8 @@ import { pipeline, env } from '@huggingface/transformers';
 
 // Configure environment
 env.allowLocalModels = false;
+// Force single thread ONNX backend to prevent SharedArrayBuffer crashes on some browsers
+env.backends.onnx.wasm.numThreads = 1;
 
 let transcriber = null;
 
@@ -9,15 +11,18 @@ export async function loadWhisperModel(onProgress) {
   if (!transcriber) {
     onProgress({ stage: "Downloading Offline AI Model (approx 70MB - one time)...", pct: 0 });
     
-    // Using whisper-tiny.en for fast, entirely offline in-browser transcription
-    transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en', {
-      progress_callback: (info) => {
-        if (info.status === 'progress') {
-           const pct = Math.round((info.loaded / info.total) * 100);
-           onProgress({ stage: `Downloading Model: ${info.file}`, pct });
+    try {
+      transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en', {
+        progress_callback: (info) => {
+          if (info.status === 'progress') {
+             const pct = Math.round((info.loaded / info.total) * 100);
+             onProgress({ stage: `Downloading Model: ${info.file}`, pct });
+          }
         }
-      }
-    });
+      });
+    } catch (err) {
+      throw new Error(`Failed to download AI model from HuggingFace. Network error: ${err.message}`);
+    }
   }
   return transcriber;
 }
