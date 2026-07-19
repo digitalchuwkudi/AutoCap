@@ -2,6 +2,8 @@ import { pipeline, env } from '@huggingface/transformers';
 
 // Configure environment
 env.allowLocalModels = false;
+// Use local ONNX wasm files to prevent jsdelivr "Failed to fetch" errors
+env.backends.onnx.wasm.wasmPaths = '/onnx/';
 // Force single thread ONNX backend to prevent SharedArrayBuffer crashes on some browsers
 env.backends.onnx.wasm.numThreads = 1;
 
@@ -48,11 +50,16 @@ export async function transcribeOffline(audioBlob, onProgress) {
   onProgress({ stage: "Transcribing Offline (this may take a moment)...", pct: 75 });
   
   // Transcribe with word-level timestamps
-  const output = await model(audioData, {
-    chunk_length_s: 30,
-    stride_length_s: 5,
-    return_timestamps: 'word',
-  });
+  let output;
+  try {
+    output = await model(audioData, {
+      chunk_length_s: 30,
+      stride_length_s: 5,
+      return_timestamps: 'word',
+    });
+  } catch (err) {
+    throw new Error(`AI transcription failed. Network error or unsupported audio format. Details: ${err.message}`);
+  }
 
   const chunks = output.chunks || [];
   

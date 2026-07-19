@@ -4,7 +4,7 @@
 // File size limit: ~500MB depending on your RAM.
 
 import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { fetchFile, toBlobURL } from "@ffmpeg/util";
+import { fetchFile } from "@ffmpeg/util";
 
 let ff       = null;
 let ffLoaded = false;
@@ -33,9 +33,8 @@ export async function loadFFmpeg(onProgress) {
 
   try {
     await ff.load({
-      coreURL:   await toBlobURL(`${base}/ffmpeg-core.js`,        "text/javascript"),
-      wasmURL:   await toBlobURL(`${base}/ffmpeg-core.wasm`,      "application/wasm"),
-      workerURL: await toBlobURL(`${base}/ffmpeg-core.worker.js`, "text/javascript"),
+      coreURL:   `${base}/ffmpeg-core.js`,
+      wasmURL:   `${base}/ffmpeg-core.wasm`,
     });
   } catch (err) {
     throw new Error(`Failed to load FFmpeg engine from ${base}. Network error or adblocker might be blocking it. Detailed error: ${err.message}`);
