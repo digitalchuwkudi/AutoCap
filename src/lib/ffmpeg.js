@@ -4,7 +4,7 @@
 // File size limit: ~500MB depending on your RAM.
 
 import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { fetchFile } from "@ffmpeg/util";
+import { fetchFile, toBlobURL } from "@ffmpeg/util";
 
 let ff       = null;
 let ffLoaded = false;
@@ -28,22 +28,11 @@ export async function loadFFmpeg(onProgress) {
     });
   });
 
-  // Download files manually to blobs to ensure they are fully downloaded before WebAssembly compilation
-  // This prevents CompileErrors caused by chunked streaming or timeouts in sandboxed environments.
-  const loadBlob = async (url, type) => {
-    try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const buf = await res.arrayBuffer();
-      return URL.createObjectURL(new Blob([buf], { type }));
-    } catch (e) {
-      throw new Error(`Failed to fetch ${url}: ${e.message || e}`);
-    }
-  };
+  const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm";
 
   try {
-    const coreURL = await loadBlob("/ffmpeg/ffmpeg-core.js?v=2", "text/javascript");
-    const wasmURL = await loadBlob("/ffmpeg/ffmpeg-core.wasm?v=2", "application/wasm");
+    const coreURL = await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript");
+    const wasmURL = await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm");
 
     await ff.load({ coreURL, wasmURL });
   } catch (err) {
